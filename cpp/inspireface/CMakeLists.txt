@@ -120,8 +120,9 @@ endif ()
 # Add include directory
 set(NEED_INCLUDE ${NEED_INCLUDE} ${CMAKE_CURRENT_SOURCE_DIR}/include/inspireface)
 
-if (ISF_BUILD_LINUX_ARM7 OR ANDROID)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon")
+# Only apply NEON FPU flags to ARMv7 / armeabi-v7a
+if (ISF_BUILD_LINUX_ARM7 OR (ANDROID AND ANDROID_ABI STREQUAL "armeabi-v7a"))
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon")
 endif()
 
 if (ISF_BUILD_LINUX_ARM7 OR ISF_BUILD_LINUX_AARCH64)

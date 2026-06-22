@@ -1,4 +1,10 @@
 #!/bin/bash
+if [[ -z "${ANDROID_NDK:-}" ]]; then
+  echo "Error: ANDROID_NDK is not defined"
+  exit 1
+fi
+
+echo "Using ANDROID_NDK=${ANDROID_NDK}"
 
 reorganize_structure() {
     local base_path=$1
@@ -114,24 +120,27 @@ build() {
     mkdir -p ${BUILD_FOLDER_PATH}/${arch}
     pushd ${BUILD_FOLDER_PATH}/${arch}
     cmake ${SCRIPT_DIR} \
-        -G "Unix Makefiles" \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-        -DCMAKE_C_FLAGS="-g0 ${CMAKE_C_FLAGS}" \
-        -DCMAKE_CXX_FLAGS="-g0 ${CMAKE_CXX_FLAGS}" \
-        -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
-        -DANDROID_TOOLCHAIN=clang \
-        -DANDROID_ABI=${arch} \
-        -DANDROID_NATIVE_API_LEVEL=${NDK_API_LEVEL} \
-        -DANDROID_STL=c++_static \
-        -DMNN_BUILD_FOR_ANDROID_COMMAND=true \
-        -DISF_BUILD_WITH_SAMPLE=OFF \
-        -DISF_BUILD_WITH_TEST=OFF \
-        -DISF_ENABLE_BENCHMARK=OFF \
-        -DISF_ENABLE_USE_LFW_DATA=OFF \
-        -DISF_ENABLE_TEST_EVALUATION=OFF \
-        -DISF_BUILD_SHARED_LIBS=ON \
-        -Wno-dev
+    -G "Unix Makefiles" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+    -DCMAKE_C_FLAGS="-g0 ${CMAKE_C_FLAGS}" \
+    -DCMAKE_CXX_FLAGS="-g0 ${CMAKE_CXX_FLAGS}" \
+    -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
+    -DCMAKE_SHARED_LINKER_FLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384" \
+    -DCMAKE_MODULE_LINKER_FLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384" \
+    -DCMAKE_EXE_LINKER_FLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384" \
+    -DANDROID_TOOLCHAIN=clang \
+    -DANDROID_ABI=${arch} \
+    -DANDROID_PLATFORM=android-${NDK_API_LEVEL} \
+    -DANDROID_STL=c++_static \
+    -DMNN_BUILD_FOR_ANDROID_COMMAND=true \
+    -DISF_BUILD_WITH_SAMPLE=OFF \
+    -DISF_BUILD_WITH_TEST=OFF \
+    -DISF_ENABLE_BENCHMARK=OFF \
+    -DISF_ENABLE_USE_LFW_DATA=OFF \
+    -DISF_ENABLE_TEST_EVALUATION=OFF \
+    -DISF_BUILD_SHARED_LIBS=ON \
+    -Wno-dev
     make -j4
     make install
     popd
@@ -147,9 +156,10 @@ fi
 SCRIPT_DIR=$(pwd)  # Project dir
 BUILD_FOLDER_PATH="build/inspireface-android${TAG}"
 
-build arm64-v8a 21
-build armeabi-v7a 21
-build x86_64 21
+build arm64-v8a 35
+build armeabi-v7a 24
+build x86_64 35
+# build x86 24
 
 reorganize_structure "${BUILD_FOLDER_PATH}"
 

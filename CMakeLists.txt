@@ -326,6 +326,14 @@ set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 
 # Add a child project: InspireFace Source
 add_subdirectory(cpp/inspireface)
+
+if(ANDROID AND TARGET InspireFace)
+    target_link_options(InspireFace PRIVATE
+            "-Wl,-z,max-page-size=16384"
+            "-Wl,-z,common-page-size=16384"
+    )
+endif()
+
 get_property(InspireFace TARGET InspireFace PROPERTY InspireFace)
 
 # Add a child project: Samples
